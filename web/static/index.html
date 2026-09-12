@@ -1,0 +1,161 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Avatar Pipeline Web Studio</title>
+  <link rel="stylesheet" href="/static/style.css">
+</head>
+<body>
+
+  <!-- Header -->
+  <header>
+    <div class="logo-group">
+      <div class="logo-icon">
+        <svg viewBox="0 0 24 24">
+          <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 3c1.66 0 3 1.34 3 3s-1.34 3-3 3-3-1.34-3-3 1.34-3 3-3zm0 14.2c-2.5 0-4.71-1.28-6-3.22.03-1.99 4-3.08 6-3.08 1.99 0 5.97 1.09 6 3.08-1.29 1.94-3.5 3.22-6 3.22z"/>
+        </svg>
+      </div>
+      <div class="logo-text">
+        <h1>AVATAR PIPELINE</h1>
+        <span>Live Web Studio & Neural Streamer</span>
+      </div>
+    </div>
+
+    <div class="header-status">
+      <div class="badge-live" id="streamStatusBadge">
+        <span class="dot-pulse"></span>
+        <span id="streamStatusText">READY</span>
+      </div>
+    </div>
+  </header>
+
+  <!-- Main Container -->
+  <main class="main-container">
+    
+    <!-- Stage Area -->
+    <section class="stage-section">
+      <div class="viewport-card">
+        <!-- Rendered Transformed Output Canvas -->
+        <canvas id="outputCanvas" width="1280" height="720"></canvas>
+
+        <!-- Hidden Webcam Video Element -->
+        <video id="webcamFeed" autoplay playsinline muted></video>
+
+        <!-- Picture-in-picture raw webcam preview -->
+        <div class="pip-preview">
+          <span class="pip-label">Raw Camera</span>
+          <canvas id="pipCanvas" width="320" height="180"></canvas>
+        </div>
+
+        <!-- HUD Overlay -->
+        <div class="hud-overlay">
+          <div class="hud-item" id="hudFps">FPS: 0</div>
+          <div class="hud-item" id="hudLatency">Latency: 0 ms</div>
+          <div class="hud-item" id="hudResolution">1280 x 720</div>
+        </div>
+      </div>
+
+      <!-- Stage Bottom Control Strip -->
+      <div class="stage-controls">
+        <div style="display: flex; gap: 12px;">
+          <button id="btnToggleBroadcast" class="btn-primary">Start Broadcast</button>
+          <button id="btnMuteAudio" class="btn-preset">Mic: ON</button>
+        </div>
+        <div style="display: flex; align-items: center; gap: 14px;">
+          <span style="font-size: 0.8rem; color: var(--text-muted);">Audio Monitor:</span>
+          <label class="switch">
+            <input type="checkbox" id="toggleAudioMonitor">
+            <span class="slider-round"></span>
+          </label>
+        </div>
+      </div>
+    </section>
+
+    <!-- Sidebar Control Dock -->
+    <aside class="control-dock">
+      
+      <!-- Audio Engine Card -->
+      <div class="dock-card">
+        <h3>
+          <span>Voice Pitch Shifter</span>
+          <span style="font-size: 0.75rem; color: var(--accent-cyan);">NumPy Engine</span>
+        </h3>
+
+        <div class="pitch-display" id="pitchDisplay">0.0 Semitones</div>
+        
+        <div class="slider-group">
+          <div class="slider-label">
+            <span>Shift Amount</span>
+            <span id="pitchSliderVal">0.0 st</span>
+          </div>
+          <input type="range" id="pitchSlider" min="-12" max="12" step="0.5" value="0">
+        </div>
+
+        <div class="pitch-presets">
+          <button class="btn-preset" onclick="setPitch(-4.0)">Deep</button>
+          <button class="btn-preset" onclick="setPitch(-2.5)">Cyber</button>
+          <button class="btn-preset" onclick="setPitch(0.0)">Normal</button>
+          <button class="btn-preset" onclick="setPitch(4.5)">High</button>
+        </div>
+      </div>
+
+      <!-- Virtual Background Card -->
+      <div class="dock-card">
+        <h3>
+          <span>Virtual Background</span>
+          <span style="font-size: 0.75rem; color: var(--accent-cyan);">MediaPipe</span>
+        </h3>
+
+        <div class="bg-grid" id="bgPresetsGrid">
+          <!-- Populated dynamically via /api/presets -->
+        </div>
+
+        <label class="upload-btn">
+          + Upload Custom Background
+          <input type="file" id="bgUploadInput" accept="image/*" style="display: none;">
+        </label>
+
+        <div class="slider-group" style="margin-top: 16px;">
+          <div class="slider-label">
+            <span>Matting Threshold</span>
+            <span id="thresholdVal">0.50</span>
+          </div>
+          <input type="range" id="thresholdSlider" min="0.1" max="0.9" step="0.05" value="0.5">
+        </div>
+
+        <div class="slider-group">
+          <div class="slider-label">
+            <span>Edge Softness (Feather)</span>
+            <span id="featherVal">7 px</span>
+          </div>
+          <input type="range" id="featherSlider" min="1" max="21" step="2" value="7">
+        </div>
+      </div>
+
+      <!-- Vision Engine Card -->
+      <div class="dock-card">
+        <h3>
+          <span>Face Swapper</span>
+          <span style="font-size: 0.75rem; color: var(--accent-cyan);">ONNX GPU</span>
+        </h3>
+
+        <div class="toggle-row">
+          <div>
+            <div style="font-size: 0.85rem; font-weight: 600;">Enable Face Swap</div>
+            <div style="font-size: 0.75rem; color: var(--text-muted);">Neural landmark replacement</div>
+          </div>
+          <label class="switch">
+            <input type="checkbox" id="toggleFaceSwap">
+            <span class="slider-round"></span>
+          </label>
+        </div>
+      </div>
+
+    </aside>
+
+  </main>
+
+  <script src="/static/app.js"></script>
+</body>
+</html>
