@@ -1,0 +1,30 @@
+# Byte-compiled / optimized / DLL files
+__pycache__/
+*.py[cod]
+*$py.class
+
+# Environments & IDEs
+.venv/
+env/
+venv/
+ENV/
+.idea/
+.vscode/
+*.swp
+
+# Large model binaries and assets (do not commit weights to git)
+models/**/*.onnx
+models/**/*.pth
+models/**/*.pt
+models/**/*.bin
+models/**/*.safetensors
+models/background/*.jpg
+models/background/*.png
+
+# Media / OS artifacts
+*.mp4
+*.avi
+*.wav
+*.log
+Thumbs.db
+.DS_Store
