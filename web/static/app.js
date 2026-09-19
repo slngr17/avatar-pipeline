@@ -270,6 +270,15 @@ function playTransformedAudio(arrayBuffer) {
   nextPlayTime += audioBuffer.duration;
 }
 
+const standbyOverlay = document.getElementById("standbyOverlay");
+if (standbyOverlay) {
+  standbyOverlay.addEventListener("click", () => {
+    if (!isBroadcasting) {
+      btnToggleBroadcast.click();
+    }
+  });
+}
+
 // 7. Start / Stop Broadcast Toggle
 btnToggleBroadcast.addEventListener("click", async () => {
   if (!isBroadcasting) {
@@ -286,6 +295,7 @@ btnToggleBroadcast.addEventListener("click", async () => {
       await initAudioPipeline(videoStream);
 
       isBroadcasting = true;
+      if (standbyOverlay) standbyOverlay.classList.add("hidden");
       btnToggleBroadcast.textContent = "Stop Broadcast";
       btnToggleBroadcast.className = "btn-danger";
       streamStatusText.textContent = "ON AIR";
@@ -298,6 +308,7 @@ btnToggleBroadcast.addEventListener("click", async () => {
     }
   } else {
     isBroadcasting = false;
+    if (standbyOverlay) standbyOverlay.classList.remove("hidden");
     if (videoStream) videoStream.getTracks().forEach(t => t.stop());
     if (videoWs) videoWs.close();
     if (audioWs) audioWs.close();

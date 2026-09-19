@@ -42,6 +42,20 @@
         <!-- Hidden Webcam Video Element -->
         <video id="webcamFeed" autoplay playsinline muted></video>
 
+        <!-- Standby Prompt Overlay (Visible when not broadcasting) -->
+        <div id="standbyOverlay" class="standby-overlay">
+          <div class="standby-content">
+            <div class="standby-icon">
+              <svg viewBox="0 0 24 24" width="48" height="48" fill="none" stroke="currentColor" stroke-width="1.8">
+                <path d="M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z" stroke-linecap="round" stroke-linejoin="round"/>
+              </svg>
+            </div>
+            <h2>CAMERA STANDBY</h2>
+            <p>Click here or press <strong>Start Broadcast</strong> below to activate camera & mic</p>
+            <button class="btn-primary standby-action-btn">Enable Camera</button>
+          </div>
+        </div>
+
         <!-- Picture-in-picture raw webcam preview -->
         <div class="pip-preview">
           <span class="pip-label">Raw Camera</span>
@@ -77,10 +91,7 @@
       
       <!-- Audio Engine Card -->
       <div class="dock-card">
-        <h3>
-          <span>Voice Pitch Shifter</span>
-          <span style="font-size: 0.75rem; color: var(--accent-cyan);">NumPy Engine</span>
-        </h3>
+        <h3 class="dock-card-header">Voice Pitch Shifter</h3>
 
         <div class="pitch-display" id="pitchDisplay">0.0 Semitones</div>
         
@@ -102,10 +113,7 @@
 
       <!-- Virtual Background Card -->
       <div class="dock-card">
-        <h3>
-          <span>Virtual Background</span>
-          <span style="font-size: 0.75rem; color: var(--accent-cyan);">MediaPipe</span>
-        </h3>
+        <h3 class="dock-card-header">Virtual Background</h3>
 
         <div class="bg-grid" id="bgPresetsGrid">
           <!-- Populated dynamically via /api/presets -->
@@ -135,10 +143,7 @@
 
       <!-- Vision Engine Card -->
       <div class="dock-card">
-        <h3>
-          <span>Face Swapper</span>
-          <span style="font-size: 0.75rem; color: var(--accent-cyan);">ONNX GPU</span>
-        </h3>
+        <h3 class="dock-card-header">Face Swapper</h3>
 
         <div class="toggle-row">
           <div>
