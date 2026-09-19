@@ -26,5 +26,6 @@ COPY . .
 
 EXPOSE 8080
 
-# Hardcode port 8080 — no shell expansion needed, no variable issues
-CMD ["uvicorn", "web.app:app", "--host", "0.0.0.0", "--port", "8080"]
+# Run Python entrypoint which dynamically reads PORT env var safely
+CMD ["python", "-m", "web.app"]
+
