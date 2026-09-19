@@ -1,8 +1,12 @@
 import time
 import threading
 import numpy as np
-import pyaudio
 from typing import Optional, List, Dict, Any
+
+try:
+    import pyaudio
+except ImportError:
+    pyaudio = None
 
 
 class RVCStreamer:
@@ -33,41 +37,57 @@ class RVCStreamer:
         self.input_device_index = input_device_index
         self.output_device_name = output_device_name
 
-        self.p = pyaudio.PyAudio()
         self.stop_event = threading.Event()
         self.worker_thread: Optional[threading.Thread] = None
 
         # Precompute pitch shift factor: factor = 2^(semitones / 12)
         self.pitch_factor = 2.0 ** (self.semitones / 12.0)
 
-        # Locate Virtual Audio Cable output sink
-        self.output_device_index = self._find_output_device(self.output_device_name)
+        # Initialize PyAudio if available (for desktop virtual cable routing)
+        if pyaudio is not None:
+            try:
+                self.p = pyaudio.PyAudio()
+                self.output_device_index = self._find_output_device(self.output_device_name)
+            except Exception as e:
+                print(f"[RVCStreamer] Audio hardware init notice: {e}")
+                self.p = None
+                self.output_device_index = None
+        else:
+            self.p = None
+            self.output_device_index = None
 
     def _find_output_device(self, name_substr: str) -> Optional[int]:
         """
         Scans all available audio output devices to locate the Virtual Audio Cable sink.
         """
-        device_count = self.p.get_device_count()
-        matched_index = None
+        if self.p is None:
+            return None
 
-        for i in range(device_count):
-            dev_info = self.p.get_device_info_by_index(i)
-            if dev_info.get("maxOutputChannels", 0) > 0:
-                name = dev_info.get("name", "")
-                if name_substr.lower() in name.lower():
-                    matched_index = i
-                    print(f"[RVCStreamer] Found matching output sink '{name}' at index {i}")
-                    break
+        try:
+            device_count = self.p.get_device_count()
+            matched_index = None
 
-        if matched_index is None:
-            default_out = self.p.get_default_output_device_info()
-            matched_index = default_out.get("index")
-            print(
-                f"[RVCStreamer] Warning: Sink '{name_substr}' not found. "
-                f"Falling back to default output: '{default_out.get('name')}' (index {matched_index})"
-            )
+            for i in range(device_count):
+                dev_info = self.p.get_device_info_by_index(i)
+                if dev_info.get("maxOutputChannels", 0) > 0:
+                    name = dev_info.get("name", "")
+                    if name_substr.lower() in name.lower():
+                        matched_index = i
+                        print(f"[RVCStreamer] Found matching output sink '{name}' at index {i}")
+                        break
 
-        return matched_index
+            if matched_index is None:
+                default_out = self.p.get_default_output_device_info()
+                matched_index = default_out.get("index")
+                print(
+                    f"[RVCStreamer] Warning: Sink '{name_substr}' not found. "
+                    f"Falling back to default output: '{default_out.get('name')}' (index {matched_index})"
+                )
+
+            return matched_index
+        except Exception as e:
+            print(f"[RVCStreamer] Device scan error: {e}")
+            return None
 
     def pitch_shift(self, audio_chunk: np.ndarray) -> np.ndarray:
         """
@@ -98,8 +118,12 @@ class RVCStreamer:
     def _stream_loop(self):
         """
         Continuous non-blocking audio capture, mathematical transformation,
-        and sink transmission loop.
+        and sink transmission loop (for local desktop streaming).
         """
+        if self.p is None:
+            print("[RVCStreamer] Local audio hardware stream unavailable (no PyAudio driver).")
+            return
+
         try:
             stream_in = self.p.open(
                 format=pyaudio.paFloat32,
@@ -125,14 +149,9 @@ class RVCStreamer:
             )
 
             while not self.stop_event.is_set():
-                # Read raw low-latency audio chunk from mic
                 raw_data = stream_in.read(self.chunk_size, exception_on_overflow=False)
                 audio_np = np.frombuffer(raw_data, dtype=np.float32)
-
-                # Apply pitch shifting array transformation
                 transformed_np = self.pitch_shift(audio_np)
-
-                # Output to Virtual Audio Cable sink
                 stream_out.write(transformed_np.tobytes())
 
         except Exception as e:
@@ -149,7 +168,6 @@ class RVCStreamer:
     def start(self):
         """Starts the audio pipeline inside a non-blocking background thread."""
         if self.worker_thread is not None and self.worker_thread.is_alive():
-            print("[RVCStreamer] Stream is already running.")
             return
 
         self.stop_event.clear()
@@ -162,8 +180,10 @@ class RVCStreamer:
         if self.worker_thread is not None:
             self.worker_thread.join(timeout=2.0)
             self.worker_thread = None
-        self.p.terminate()
-        print("[RVCStreamer] PyAudio terminated.")
+        if self.p is not None:
+            self.p.terminate()
+            self.p = None
+        print("[RVCStreamer] Audio engine stopped.")
 
 
 if __name__ == "__main__":
