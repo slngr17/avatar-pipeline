@@ -73,6 +73,11 @@ def create_default_presets():
 create_default_presets()
 
 
+@app.get("/health")
+async def health_check():
+    return {"status": "ok", "app": "AvatarPipelineWebStudio"}
+
+
 @app.get("/")
 async def get_index():
     index_path = os.path.join(STATIC_DIR, "index.html")

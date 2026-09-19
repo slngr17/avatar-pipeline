@@ -25,8 +25,9 @@ RUN pip install --no-cache-dir --upgrade pip && \
 # Copy application files
 COPY . .
 
-# Start web application on Railway's dynamic $PORT
-ENV PORT=8000
+# Expose ports commonly used by Railway
+EXPOSE 8080
 EXPOSE 8000
 
-CMD ["sh", "-c", "uvicorn web.app:app --host 0.0.0.0 --port ${PORT}"]
+# Do not hardcode ENV PORT; let Railway inject $PORT (default to 8080)
+CMD ["sh", "-c", "uvicorn web.app:app --host 0.0.0.0 --port ${PORT:-8080}"]
