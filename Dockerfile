@@ -6,7 +6,7 @@ ENV PYTHONUNBUFFERED=1
 
 WORKDIR /app
 
-# Install system dependencies for OpenCV and MediaPipe (including XCB/X11 graphics libraries)
+# Install system dependencies for OpenCV and MediaPipe
 RUN apt-get update && apt-get install -y --no-install-recommends \
     libgl1 \
     libglib2.0-0 \
@@ -15,6 +15,7 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     libxrender1 \
     libxcb1 \
     libx11-6 \
+    curl \
     && rm -rf /var/lib/apt/lists/*
 
 # Install Python dependencies
@@ -25,9 +26,10 @@ RUN pip install --no-cache-dir --upgrade pip && \
 # Copy application files
 COPY . .
 
-# Expose ports commonly used by Railway
-EXPOSE 8080
-EXPOSE 8000
+# Railway injects $PORT at runtime. Default to 8080 as fallback.
+ENV PORT=8080
 
-# Do not hardcode ENV PORT; let Railway inject $PORT (default to 8080)
-CMD ["sh", "-c", "uvicorn web.app:app --host 0.0.0.0 --port ${PORT:-8080}"]
+EXPOSE ${PORT}
+
+# Use shell form so $PORT is expanded at runtime
+CMD uvicorn web.app:app --host 0.0.0.0 --port $PORT
