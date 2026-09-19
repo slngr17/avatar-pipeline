@@ -1,0 +1,7 @@
+.git
+.venv
+__pycache__
+*.pyc
+models/**/*.onnx
+models/**/*.pth
+models/**/*.bin

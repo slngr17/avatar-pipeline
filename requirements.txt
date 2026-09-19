@@ -1,7 +1,7 @@
 # Core Computer Vision & AI
 opencv-contrib-python-headless>=4.8.0; sys_platform != 'win32'
 opencv-python>=4.8.0; sys_platform == 'win32'
-numpy>=1.24.0
+numpy>=1.24.0,<2.0.0
 onnxruntime>=1.16.0; sys_platform != 'win32'
 onnxruntime-gpu>=1.16.0; sys_platform == 'win32'
 mediapipe>=0.10.0
